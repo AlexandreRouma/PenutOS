@@ -1,0 +1,1 @@
+int maxrand(int seed,int max);
