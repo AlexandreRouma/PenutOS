@@ -1,3 +1,14 @@
+/*
+*********************************
+*            PenutOS            *
+*             Shell             *
+*                               *
+* By: Alexandre Rouma           *
+*********************************
+*/
+
+
+//Including all libraries
 #include "types.h"
 #include "lib.h"
 #include "gdt.h"
@@ -11,16 +22,18 @@
 #include "ports.h"
 #include "shell.h"
 
-int term_color = 2;
-int lshift_enable;
-int rshift_enable;
-int alt_enable;
-int ctrl_enable;
-char keyP = 0;
-int keyPrsd;
-int cmd_l = 0;
-char cmd[40];
+//Declaring all variables
+int term_color = 2; //Terminal color
+int lshift_enable; //Left-Shift pressed
+int rshift_enable; //Right-Shift pressed
+int alt_enable; //ALT pressed
+int ctrl_enable; //CTRL pressed
+char keyP = 0; //Key pressed keycode
+int keyPrsd; //Key pressed caracter
+int cmd_l = 0; //Command length
+char cmd[40]; //Command
 
+//Main shell loop
 void shell(){
 	int shell_running = 1;
 	kattr = term_color;
@@ -29,35 +42,35 @@ void shell(){
 	while (1){
 		if (keyPrsd){
 			keyPrsd = 0;
-			if (keyP == 0x0A){ //enter
+			if (keyP == 0x0A){ //ENTER
 				hide_cursor();
 				print("\n");
-				if (cmpac(cmd, "malou") == 1){
+				if (cmpac(cmd, "malou") == 1){//Just a joke with my friends xDDDDD: "malou"
 					print("\n");
 					kattr = 15;
 					print("Bonjour messieux fidele, le nom de mon pere, c'est le nom du papa du savant de la republique Eddy malou, renaissence africaine comparrer la renac!");
 					kattr = term_color;
 					print("\n");
 				}
-				else if(cmpac(cmd, "test") == 1){
+				else if(cmpac(cmd, "test") == 1){ //Test command (insert you own code here ton test !!!): "test"
 					
 				}
-				else if(cmpac(cmd, "colors") == 1){
+				else if(cmpac(cmd, "colors") == 1){ //Show all the possible colors: "colors"
 					print("\n");
 					//------------------
 					disp_colors();
 					//------------------
 					kattr = term_color;
 				}
-				else if(prefix("echo ", cmd) == 1){
+				else if(prefix("echo ", cmd) == 1){ //echo some text back: "echo [text]"
 					print(substring(cmd,5,40));
 				}
-				else if(cmpac(cmd, "clear") == 1){
+				else if(cmpac(cmd, "clear") == 1){ //Clear the shell: "clear"
 					scrollup(26);
 					kY = 0;
 					goto no_new;
 				}
-				else if(cmpac(cmd, "help") == 1){
+				else if(cmpac(cmd, "help") == 1){ //Display the help menu: "help"
 					print("\n");
 					kattr = 5;
 					print("-- HELP --\n");
@@ -76,7 +89,7 @@ void shell(){
 					print("time     -   Show time\n");					
 					kattr = term_color;
 				}
-				else if(cmpac(cmd, "time") == 1){
+				else if(cmpac(cmd, "time") == 1){ //Show the time: "time"
 					int h = getHour();
 					int m = getMinute();
 					int s = getSecond();
@@ -107,18 +120,18 @@ void shell(){
 						print(itoa(s));
 					}
 				}
-				else if(cmpac(cmd, "date") == 1){
+				else if(cmpac(cmd, "date") == 1){ //Display date (and causes crash...): "date"
 					print(itoa(getDay()));
 					print("/");
 					print(itoa(getMonth()));
 					print("/");
 					print(itoa(getYear()));
 				}
-				else if(cmpac(cmd, "") == 1){
+				else if(cmpac(cmd, "") == 1){ //No command, just display an other line !
 					goto no_new;
 				}
 
-				else if(prefix("color ", cmd) == 1){
+				else if(prefix("color ", cmd) == 1){ //Change the text color: "color [text-color]"
 					term_color = atoi(substring(cmd,6,8));
 					kattr = term_color;
 					print("\n");
@@ -179,7 +192,7 @@ void isr_kbd_int(void)
 	i = inb(0x60);
 	i--;
 
-	if (i < 0x80) {		/* touche enfoncee */
+	if (i < 0x80) {	// Key pressed
         
 		switch (i) {
 		case 0x29:
@@ -198,7 +211,7 @@ void isr_kbd_int(void)
 		    keyPrsd = 1;
 			keyP = kbdmap[i * 4 + (lshift_enable || rshift_enable)];
 		}
-	} else {		/* touche relachee */
+	} else {		//Key released
 		i -= 0x80;
 		switch (i) {
 		case 0x29:
@@ -218,7 +231,7 @@ void isr_kbd_int(void)
     
 }
 
-void clear_cmd(){
+void clear_cmd(){ //Clear command routine
 	int i = 0;
 	while (i < 40){
 		cmd[i] = 0;
@@ -227,7 +240,7 @@ void clear_cmd(){
 	cmd_l = 0;
 }
 
-void disp_colors(){
+void disp_colors(){ //Show colors routine
 	kattr = 0x10;
 	print("   ");
 	kattr = 0x01;
