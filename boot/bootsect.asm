@@ -11,7 +11,6 @@ jmp start
 
 start:
 
-; initialisation des segments en 0x07C0
     mov ax, 0x07C0
     mov ds, ax
     mov es, ax
@@ -19,7 +18,7 @@ start:
     mov ss, ax
     mov sp, 0xf000
 
-; recuparation de l'unite de boot
+
     mov [bootdrv], dl 
 
 
