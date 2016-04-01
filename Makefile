@@ -3,7 +3,7 @@ OBJ=floppyA
 all: $(OBJ) 
 
 floppyA: bootsect kernel
-	cat boot/bootsect kern/kernel /dev/zero | dd of=floppyA.img bs=4096 count=2880
+	cat boot/bootsect kern/kernel /dev/zero | dd of=PenutOS.img bs=4096 count=2880
 
 bootsect: 
 	make -C boot
