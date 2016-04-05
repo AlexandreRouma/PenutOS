@@ -5,14 +5,15 @@
 #include "io.h"
 #include "idt.h"
 #include "random.h"
-//#include "kbd.h"
 #include "str_utils.h"
 #include "rtc.h"
 #include "ports.h"
 #include "shell.h"
+#include "pit.h"
 
 void init_pic(void);
 int main(void);
+char* logo = "                                                    \n                                                    \n                                                    \n                                                    \n                                                    \n               ```````              ````            \n           ..-:--:::-:::..`  ```..-----:::-.`       \n        `-:::/:::::/oooo+//-.::::::://:-///++:.     \n      `--:///++oooo+++++/+o/::/+//++++o+so/+/++`    \n     `..-:///+ososososooosss+o++ooo++o+oso+++//`    \n     ://+++ooo++oo+++oo+oooo+o/+/++oyyssso+++:`     \n     -+++ooo+ososhsoooooossssssossysoooooo+/.       \n      .+oooo++++ooooossssyhysssoooosoooss+-         \n       `:oyssoyyyhhdmdyyyshmmdhysyyyhhyyo/::-..`    \n       `.:/oossssssssoo+++//++oossso++//::--..``    \n                                                    \n                                                    \n                                                    \n";
 
 void _start(void)
 {
@@ -66,5 +67,15 @@ void _start(void)
 
 int main(void)
 {
+	scrollup(26);
+	kattr = 0x0B;
+	print("Penut OS !!!");
+	kattr = 0x0E;
+	print(logo);
+	kattr = 0x0B;
+	print("By: Alexandre Rouma");
+	sleep(2000);
+	scrollup(26);
+	kX = 0;
 	shell();
 }

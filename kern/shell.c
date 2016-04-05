@@ -23,6 +23,7 @@
 #include "shell.h"
 
 //Declaring all variables
+
 int term_color = 2; //Terminal color
 int lshift_enable; //Left-Shift pressed
 int rshift_enable; //Right-Shift pressed
