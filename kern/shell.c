@@ -34,6 +34,7 @@ int keyPrsd; //Key pressed caracter
 int cmd_l = 0; //Command length
 char cmd[40]; //Command
 
+
 //Main shell loop
 void shell(){
 	int shell_running = 1;
@@ -54,6 +55,49 @@ void shell(){
 					print("\n");
 				}
 				else if(cmpac(cmd, "test") == 1){ //Test command (insert you own code here ton test !!!): "test"
+					clearScreen(0xFF);
+				}
+				else if(prefix("memwrite ", cmd) == 1){ //echo some text back: "echo [text]"
+				    print("\n");
+					
+					char *ram = 0x00;
+					
+					int data = atoi(substring(cmd,9,11));
+					int addr = atoi(substring(cmd,13,cmdLng()));
+					print("Writing ");
+					print(itoa(data));
+					print(" to address ");
+					print(itoa(addr));
+					print(" ... ");
+					
+					
+					ram[addr] = data;
+					
+					print("Done.");
+					
+					
+				}
+				else if(prefix("jump ", cmd) == 1){ //echo some text back: "echo [text]"
+				    print("\n");
+					
+					int addr = atoi(substring(cmd,5,cmdLng()));
+					print("Jumping to address ");
+					print(itoa(addr));
+					clear_cmd();
+					void (*jmp)(void) = addr;
+					jmp();
+					
+				}
+				else if(prefix("memread ", cmd) == 1){ //echo some text back: "echo [text]"
+				    print("\n");
+					
+					char *ram = 0x00;
+					
+					int addr = atoi(substring(cmd,8,cmdLng()));
+
+					print("Data: ");
+					
+					print(itoa(ram[addr]));
 					
 				}
 				else if(cmpac(cmd, "colors") == 1){ //Show all the possible colors: "colors"
@@ -63,9 +107,7 @@ void shell(){
 					//------------------
 					kattr = term_color;
 				}
-				else if(prefix("echo ", cmd) == 1){ //echo some text back: "echo [text]"
-					print(substring(cmd,5,40));
-				}
+				
 				else if(cmpac(cmd, "clear") == 1){ //Clear the shell: "clear"
 					scrollup(26);
 					kY = 0;
@@ -241,6 +283,15 @@ void clear_cmd(){ //Clear command routine
 	cmd_l = 0;
 }
 
+int cmdLng(){
+	int i = 0;
+	
+	 while (cmd[i] != 0 && i < 40){
+		 i++;
+	 }
+	 return i;
+}
+
 void disp_colors(){ //Show colors routine
 	kattr = 0x10;
 	print("   ");
@@ -302,4 +353,9 @@ void disp_colors(){ //Show colors routine
 	print("   ");
 	kattr = 0x0F;
 	print(" 15 - White\n");
+}
+
+void startprc(int proc){
+	void (*jmp)(void) = proc;
+	jmp();
 }

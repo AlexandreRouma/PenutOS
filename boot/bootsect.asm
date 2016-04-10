@@ -1,126 +1,111 @@
-%define    BASE    0x100
-%define KSIZE    54
+%define LD_ADDRESS 0x100 ; Address of where to load the kernel
+%define KRN_SIZE   54      ; Kernel size in sectors
+%define FST_SECTOR 2      ; Sector of the kernel
 
-[BITS 16]
-[ORG 0x0]
+[bits 16]
+[org 0x0]
 
-jmp start
+mov ax, 0x07C0 ; Initialization
+mov ds, ax
+mov es, ax
 
-%include "UTIL.INC"
-%include "GDT.INC"
+mov ax, 0x8000 ; Loading stack
+mov ss, ax
+mov sp, 0xf000
 
-start:
+mov [boot_device], dl ; Get bootdisk number
 
-    mov ax, 0x07C0
-    mov ds, ax
-    mov es, ax
-    mov ax, 0x8000    ; stack en 0xFFFF
-    mov ss, ax
-    mov sp, 0xf000
+mov ah, 0x00 ; Set video mode to 0x03 (80 - 25)
+mov al, 0x03
+int 0x10
 
+mov al, "L" ; Print "loading..." message
+call print
+mov al, "o"
+call print
+mov al, "a"
+call print
+mov al, "d"
+call print
+mov al, "i"
+call print
+mov al, "n"
+call print
+mov al, "g"
+call print
+mov al, "."
+call print
+call print
+call print
 
-    mov [bootdrv], dl 
+xor ax, ax
+int 0x13
 
+push es
 
+mov ax, LD_ADDRESS
+mov es, ax
+mov bx, 0
+mov ah, 0x02 ; Load the kernel
+mov al, KRN_SIZE
+mov ch, 0x00
+mov cl, FST_SECTOR
+mov dh, 0x00
+mov dl, [boot_device]
+int 0x13
 
-; affiche un msg
-    mov si, msgDebut
-    call afficher
-	
+pop es
 
-; Change mode
-    
-    mov ah, 00h
-    mov al, 0x03
-    int 10h
-	
-    
+mov ax, gdtend    ; calcule la limite de GDT
+mov bx, gdt
+sub ax, bx
+mov word [gdtptr], ax
+xor eax, eax      ; calcule l'adresse lineaire de GDT
+xor ebx, ebx
+mov ax, ds
+mov ecx, eax
+shl ecx, 4
+mov bx, gdt
+add ecx, ebx
+mov dword [gdtptr+2], ecx
 
-; charger le noyau
-    xor ax, ax
-    int 0x13
+cli
+lgdt [gdtptr]    ; charge la gdt
+mov eax, cr0
+or  ax, 1
+mov cr0, eax 
 
-    push es
-    mov ax, BASE
-    mov es, ax
-    mov bx, 0
-    
-    mov ah, 2
-    mov al, KSIZE
-    mov ch, 0
-    mov cl, 2
-    mov dh, 0
-    mov dl, [bootdrv]
-    int 0x13
-    pop es
-
-
-; initialisation de la GDT
-    ; descInit base(32), limite(20/32), acces/type(8), flags(4/8), adresse(16)
-    descInit 0, 0xFFFFF, 10011011b, 1101b, gdt_cs
-    descInit 0, 0xFFFFF, 10010011b, 1101b, gdt_ds
-
-; initialisation du pointeur sur la GDT
-    mov ax, gdtend    ; calcule la limite de GDT
-    mov bx, gdt
-    sub ax, bx
-    mov word [gdtptr], ax
-
-    xor eax, eax    ; calcule l'adresse lineaire de GDT
-    mov  ax, ds
-    mov  bx, gdt
-    call calcadr
-    mov dword [gdtptr+2], ecx
-
-; passage en modep
-    cli
-    lgdt [gdtptr]    ; charge la gdt
-    mov eax, cr0
-    or   ax, 1
-    mov cr0, eax    ; PE mis a 1 (CR0)
-
-    jmp next
+jmp next
 next:
-    
-    
-	
+mov ax, 0x10
+mov ds, ax
+mov fs, ax
+mov gs, ax
+mov es, ax
+mov ss, ax
+mov esp, 0x9F000
 
-    mov ax, 0x10    ; segment de donne
-    mov ds, ax
-    mov fs, ax
-    mov gs, ax
-    mov es, ax
-    mov ss, ax
-    mov esp, 0x9F000
-    
-    
-
-    jmp dword 0x8:0x1000
-
-end:
-    jmp end
+jmp dword 0x8:0x1000
 
 
-;--------------------------------------------------------------------
-msgDebut db "loading...", 13, 10, 0
+; Variables
+boot_device db 0
 
 gdt:
-gdt_null:
-    dw 0, 0, 0, 0
+    db 0, 0, 0, 0, 0, 0, 0, 0
 gdt_cs:
-    dw 0, 0, 0, 0
+    db 0xFF, 0xFF, 0x0, 0x0, 0x0, 10011011b, 11011111b, 0x0
 gdt_ds:
-    dw 0, 0, 0, 0
+    db 0xFF, 0xFF, 0x0, 0x0, 0x0, 10010011b, 11011111b, 0x0
 gdtend:
 
 gdtptr:
-    dw    0x0000    ; limite
-    dd    0         ; base
+    dw 0
+	
+print: ; The print routine
+mov ah, 0x0E
+int 0x10
+ret	
 
-bootdrv: db 0
-
-;--------------------------------------------------------------------
-;; NOP jusqu'a 510
-times 510-($-$$) db 144
-dw 0xAA55
-
+times 510-($-$$) db 144 ; NOP until 510 bytes
+dw 0xAA55 ; Bootloader signature
